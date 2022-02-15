@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:instagram_clone/resources/auth_methods.dart';
+import 'package:instagram_clone/responsive/mobile_screen_layout.dart';
+import 'package:instagram_clone/responsive/responsive.dart';
+import 'package:instagram_clone/responsive/web_screen_layout.dart';
+import 'package:instagram_clone/screens/login_screen.dart';
 import 'package:instagram_clone/utils/colors.dart';
 import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/text_input.dart';
@@ -21,7 +25,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   Uint8List? _image;
-  bool isLoading = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -40,9 +44,12 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void signUpUser() async {
+    // Set Loading to true
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
+
+    // signing up user
     String res = await AuthMethod().signUpUser(
       email: _emailController.text,
       password: _passwordController.text,
@@ -50,12 +57,33 @@ class _SignupScreenState extends State<SignupScreen> {
       bio: _bioController.text,
       file: _image!,
     );
+
+    //if success
     if (res != 'success') {
+      setState(() {
+        _isLoading = false;
+      });
+      // Navigate to HomeScreen
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const ResponsiveLayout(
+            mobileScreenLayout: MobileScreenLayout(),
+            webScreenLayout: WebScreenlayout(),
+          ),
+        ),
+      );
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      // show the error
       showSnackBar(res, context);
     }
-    setState(() {
-      isLoading = false;
-    });
+  }
+
+  void navigateToLogin() {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
 
   @override
@@ -134,7 +162,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 InkWell(
                   onTap: signUpUser,
                   child: Container(
-                    child: isLoading
+                    child: _isLoading
                         ? const Center(
                             child: CircularProgressIndicator(
                               color: primaryColor,
